@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+path="${1:-/workspace}"
+
+if [ -z "${LIMA_INSTANCE:-}" ]; then
+  LIMA_INSTANCE="default"
+fi
+
+set -x
+code --folder-uri "vscode-remote://ssh-remote+lima-${LIMA_INSTANCE}${path}"

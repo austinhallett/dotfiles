@@ -1,13 +1,19 @@
 #!/bin/bash
 set -euo pipefail
-cd "$(dirname "$0")"
-flags=${1-}
 
-# Backup ~/.profile if it exists and is not a symlink
-if [ -f "${HOME}/.profile" ] && [ ! -L "${HOME}/.profile" ]; then
-  backup_file="${HOME}/.profile.backup.$(date +%Y%m%d%H%M%S)"
-  echo "Backing up existing .profile to ${backup_file}"
-  mv "${HOME}/.profile" "${backup_file}"
+# stow  --restow bin
+stow --no-folding --target="HOME" --ignore="init.sh" "shared"
+
+platform=$(uname | tr '[:upper:]' '[:lower:]')
+if [ ! -d "${platform}" ]; then
+    echo "# Platform ${platform} is not supported. Aborting..."
+    exit 1
+else
+    echo "# Bootstrapping for platform: ${platform}"
+    stow --no-folding --override='.*' --target="HOME" --ignore="init.sh" "${platform}"
+    if [ -f "${platform}/init.sh" ]; then
+        echo "## Sourcing platform-specific init script: ${platform}/init.sh"
+        # shellcheck disable=SC1091
+        source "${platform}/init.sh"
+    fi
 fi
-
-stow "${flags}" --no-folding --target="${HOME}" .
